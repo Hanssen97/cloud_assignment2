@@ -61,6 +61,6 @@ func setHandlers() {
 	router.HandleFunc("/latest", handleLatest).Methods("POST")
 	router.HandleFunc("/average", handleAverage).Methods("POST")
 	router.HandleFunc("/evaluationtrigger", handleEvaluationTrigger).Methods("GET")
-	router.HandleFunc("/{id}", handleAccessHook).Methods("GET")
-	router.HandleFunc("/{id}", handleDeleteHook).Methods("DELETE")
+	router.HandleFunc("/id/{id}", handleAccessHook).Methods("GET")
+	router.HandleFunc("/id/{id}", handleDeleteHook).Methods("DELETE")
 }
