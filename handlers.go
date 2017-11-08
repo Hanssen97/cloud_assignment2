@@ -39,17 +39,22 @@ func handleAccessHook(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	var ticket Ticket
 
-	collection := session.DB("CurrencyDB").C("tickets")
-	collection.FindId(bson.ObjectIdHex(vars["id"])).One(&ticket)
-
-	response, err := json.MarshalIndent(ticket, "", "   ")
-
-	if err != nil {
+	if !bson.IsObjectIdHex(vars["id"]) {
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, err)
+		fmt.Fprint(w, "Invalid ID")
 	} else {
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprint(w, string(response))
+		collection := session.DB("CurrencyDB").C("tickets")
+		collection.FindId(bson.ObjectIdHex(vars["id"])).One(&ticket)
+
+		response, err := json.MarshalIndent(ticket, "", "   ")
+
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprint(w, err)
+		} else {
+			w.WriteHeader(http.StatusOK)
+			fmt.Fprint(w, string(response))
+		}
 	}
 }
 
