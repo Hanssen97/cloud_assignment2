@@ -17,16 +17,19 @@ func handleNewHook(w http.ResponseWriter, r *http.Request) {
 
 	err := decoder.Decode(&ticket)
 	if err != nil {
-		panic(err)
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, err)
+
+	} else {
+		defer r.Body.Close()
+
+		ticket.ID = bson.NewObjectId()
+
+		insertData("tickets", ticket)
+
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprint(w, ticket.ID.Hex())
 	}
-
-	defer r.Body.Close()
-
-	ticket.ID = bson.NewObjectId()
-
-	insertData("tickets", ticket)
-
-	fmt.Fprint(w, ticket.ID.Hex())
 }
 
 //------------------------------------------------------------------------------
@@ -42,8 +45,10 @@ func handleAccessHook(w http.ResponseWriter, r *http.Request) {
 	response, err := json.MarshalIndent(ticket, "", "   ")
 
 	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, err)
 	} else {
+		w.WriteHeader(http.StatusOK)
 		fmt.Fprint(w, string(response))
 	}
 }
@@ -58,27 +63,29 @@ func handleDeleteHook(w http.ResponseWriter, r *http.Request) {
 
 func handleLatest(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
+	defer r.Body.Close()
 
 	var rate CurrencyRate
 	var ticket Ticket
 
 	err := decoder.Decode(&ticket)
 	if err != nil {
-		panic(err)
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, err)
+	} else {
+		collection := session.DB("CurrencyDB").C("rates")
+
+		collection.Find(nil).Sort("-_id").One(&rate)
+
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprint(w, rate.Rates[ticket.Target])
 	}
-
-	defer r.Body.Close()
-
-	collection := session.DB("CurrencyDB").C("rates")
-
-	collection.Find(nil).Sort("-_id").One(&rate)
-
-	fmt.Fprint(w, rate.Rates[ticket.Target])
 }
 
 //------------------------------------------------------------------------------
 func handleAverage(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
+	defer r.Body.Close()
 
 	var rates []CurrencyRate
 	var ticket Ticket
@@ -86,22 +93,21 @@ func handleAverage(w http.ResponseWriter, r *http.Request) {
 
 	err := decoder.Decode(&ticket)
 	if err != nil {
-		panic(err)
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, err)
+	} else {
+		collection := session.DB("CurrencyDB").C("rates")
+		collection.Find(nil).Sort("-_id").Limit(1).All(&rates)
+
+		for _, rate := range rates {
+			avg += rate.Rates[ticket.Target]
+		}
+
+		avg /= float64(len(rates))
+
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprint(w, avg)
 	}
-
-	defer r.Body.Close()
-
-	collection := session.DB("CurrencyDB").C("rates")
-	collection.Find(nil).Sort("-_id").Limit(1).All(&rates)
-
-	for _, rate := range rates {
-		avg += rate.Rates[ticket.Target]
-	}
-
-	avg /= float64(len(rates))
-
-	fmt.Fprint(w, avg)
-
 }
 
 //------------------------------------------------------------------------------
