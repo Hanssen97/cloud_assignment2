@@ -12,6 +12,7 @@ import (
 //------------------------------------------------------------------------------
 func handleNewHook(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
+	defer r.Body.Close()
 
 	var ticket Ticket
 
@@ -21,8 +22,6 @@ func handleNewHook(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, err)
 
 	} else {
-		defer r.Body.Close()
-
 		ticket.ID = bson.NewObjectId()
 
 		insertData("tickets", ticket)
