@@ -20,7 +20,6 @@ func main() {
 	setup()
 
 	updateRates()
-	invokeClients()
 
 	fmt.Println("App running on port " + PORT)
 
