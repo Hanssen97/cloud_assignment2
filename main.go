@@ -12,12 +12,13 @@ import (
 
 var (
 	session *mgo.Session
-	router  *mux.Router
 )
 
 //------------------------------------------------------------------------------
 func main() {
-	setup()
+	var router *mux.Router
+
+	session, router = setup()
 
 	updateRates()
 
@@ -29,22 +30,23 @@ func main() {
 }
 
 //------------------------------------------------------------------------------
-func setup() {
-	router = mux.NewRouter()
-
-	setDataBase(DBURL)
+func setup() (*mgo.Session, *mux.Router) {
+	router := mux.NewRouter()
+	session := setDataBase()
+	setHandlers(router)
 	setCrons()
-	setHandlers()
+
+	return session, router
 }
 
 //------------------------------------------------------------------------------
-func setDataBase(url string) {
-	var err error
-	session, err = mgo.Dial(url)
+func setDataBase() *mgo.Session {
+	session, err := mgo.Dial(DBURL)
 	if err != nil {
 		fmt.Print(err)
 		panic(err)
 	}
+	return session
 }
 
 //------------------------------------------------------------------------------
@@ -55,7 +57,7 @@ func setCrons() {
 }
 
 //------------------------------------------------------------------------------
-func setHandlers() {
+func setHandlers(router *mux.Router) {
 	router.HandleFunc("/", handleNewHook).Methods("POST")
 	router.HandleFunc("/latest", handleLatest).Methods("POST")
 	router.HandleFunc("/average", handleAverage).Methods("POST")
