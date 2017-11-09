@@ -20,7 +20,7 @@ func main() {
 	var session *mgo.Session
 	var err error
 
-	session, router, err = setup()
+	session, router, err = setup(DBURL)
 	if err != nil {
 		fmt.Print(err)
 		panic(err)
@@ -37,9 +37,9 @@ func main() {
 }
 
 //------------------------------------------------------------------------------
-func setup() (*mgo.Session, *mux.Router, error) {
+func setup(url string) (*mgo.Session, *mux.Router, error) {
 	router := mux.NewRouter()
-	session, err := mgo.Dial(DBURL)
+	session, err := mgo.Dial(url)
 
 	setHandlers(router)
 	setCrons()

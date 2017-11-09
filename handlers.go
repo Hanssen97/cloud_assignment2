@@ -101,7 +101,7 @@ func handleAverage(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, err)
 	} else {
 		collection := database.C("rates")
-		collection.Find(nil).Sort("-_id").Limit(1).All(&rates)
+		collection.Find(nil).Sort("-_id").Limit(7).All(&rates)
 
 		for _, rate := range rates {
 			avg += rate.Rates[ticket.Target]
