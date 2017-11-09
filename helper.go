@@ -46,10 +46,10 @@ func invokeClients() {
 	var tickets []Ticket
 	var rate CurrencyRate
 
-	collection := session.DB("CurrencyDB").C("tickets")
+	collection := database.C("tickets")
 	collection.Find(nil).All(&tickets)
 
-	collection = session.DB("CurrencyDB").C("rates")
+	collection = database.C("rates")
 	collection.Find(nil).Sort("-_id").One(&rate)
 
 	for _, ticket := range tickets {
@@ -64,10 +64,10 @@ func forceInvokeClients() {
 	var tickets []Ticket
 	var rate CurrencyRate
 
-	collection := session.DB("CurrencyDB").C("tickets")
+	collection := database.C("tickets")
 	collection.Find(nil).All(&tickets)
 
-	collection = session.DB("CurrencyDB").C("rates")
+	collection = database.C("rates")
 	collection.Find(nil).Sort("-_id").One(&rate)
 
 	for _, ticket := range tickets {
@@ -94,7 +94,7 @@ func notifyClient(t Ticket, r CurrencyRate) {
 
 //------------------------------------------------------------------------------
 func insertData(collectionName string, data interface{}) {
-	collection := session.DB("CurrencyDB").C(collectionName)
+	collection := database.C(collectionName)
 
 	err := collection.Insert(data)
 	if err != nil {

@@ -11,14 +11,21 @@ import (
 )
 
 var (
-	session *mgo.Session
+	database *mgo.Database
 )
 
 //------------------------------------------------------------------------------
 func main() {
 	var router *mux.Router
+	var session *mgo.Session
+	var err error
 
-	session, router = setup()
+	session, router, err = setup()
+	if err != nil {
+		fmt.Print(err)
+		panic(err)
+	}
+	database = session.DB(DBNAME)
 
 	updateRates()
 
@@ -30,23 +37,14 @@ func main() {
 }
 
 //------------------------------------------------------------------------------
-func setup() (*mgo.Session, *mux.Router) {
+func setup() (*mgo.Session, *mux.Router, error) {
 	router := mux.NewRouter()
-	session := setDataBase()
+	session, err := mgo.Dial(DBURL)
+
 	setHandlers(router)
 	setCrons()
 
-	return session, router
-}
-
-//------------------------------------------------------------------------------
-func setDataBase() *mgo.Session {
-	session, err := mgo.Dial(DBURL)
-	if err != nil {
-		fmt.Print(err)
-		panic(err)
-	}
-	return session
+	return session, router, err
 }
 
 //------------------------------------------------------------------------------

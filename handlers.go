@@ -42,7 +42,7 @@ func handleAccessHook(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, "Invalid ID")
 	} else {
-		collection := session.DB("CurrencyDB").C("tickets")
+		collection := database.C("tickets")
 		collection.FindId(bson.ObjectIdHex(vars["id"])).One(&ticket)
 
 		response, err := json.MarshalIndent(ticket, "", "   ")
@@ -61,7 +61,7 @@ func handleAccessHook(w http.ResponseWriter, r *http.Request) {
 func handleDeleteHook(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
-	collection := session.DB("CurrencyDB").C("tickets")
+	collection := database.C("tickets")
 	collection.RemoveId(bson.ObjectIdHex(vars["id"]))
 }
 
@@ -77,7 +77,7 @@ func handleLatest(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, err)
 	} else {
-		collection := session.DB("CurrencyDB").C("rates")
+		collection := database.C("rates")
 
 		collection.Find(nil).Sort("-_id").One(&rate)
 
@@ -100,7 +100,7 @@ func handleAverage(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, err)
 	} else {
-		collection := session.DB("CurrencyDB").C("rates")
+		collection := database.C("rates")
 		collection.Find(nil).Sort("-_id").Limit(1).All(&rates)
 
 		for _, rate := range rates {
